@@ -1,21 +1,11 @@
 ---
-title: ""
-excerpt: ""
-date: 
+title: "Welcome"
+excerpt: "Just a quick welcome"
+date: 2019-11-09
 categories: 
 - post
 tags: 
 ---
-
-# Table of Contents
-
-
-&#x2014;
-title:  "Welcome!"
-category: posts
-date: 2019-11-09
-excerpt: "Just a quick welcome"
-&#x2014;
 This is gonna be great! Beware
 
 
