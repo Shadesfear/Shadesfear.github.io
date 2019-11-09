@@ -15,14 +15,10 @@ collections:
     permalink: /project/:path/
 
 social:
-    - icon: fa-facebook
-      link: "#"
-    - icon: fa-twitter
-      link: "#"
     - icon: fa-linkedin
-      link: "#"
+      link: "https://www.linkedin.com/in/christopher-carman/"
     - icon: fa-stack-exchange
-      link: "#"
+      link: "https://stackoverflow.com/users/11118251/shadesfear"
     - icon: fa-github
       link: "https://github.com/shadesfear"
 
@@ -31,7 +27,7 @@ share:
   fb_appid: 1749788565247320
 
 urls:
-    - text: About Me
+p    - text: About Me
       url: /about/
     - text: My Projects
       url: /projects/
