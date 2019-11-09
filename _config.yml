@@ -5,6 +5,7 @@ github: https://github.com/shadesfear
 about: Student of Physics at the University of Copenhagen, exploring programming
 disqus_shortname: physcode
 google_analytics: UA-XXXXXXXX-Y
+theme: minimal-mistakes-jekyll
 
 enableTags: true
 tagarray: []
