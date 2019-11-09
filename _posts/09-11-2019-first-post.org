@@ -1,0 +1,7 @@
+---
+title:  "Welcome!"
+category: posts
+date: 2019-11-09
+excerpt: "Just a quick welcome"
+---
+This is gonna be great! Beware
