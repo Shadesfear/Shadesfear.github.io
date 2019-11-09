@@ -42,8 +42,9 @@ def parsejson
 end
 #+END_SRC
 
-yes $E=mc^2$
-
+\begin{equation}
+E=mc^2
+\end{equation}
 
 
 
