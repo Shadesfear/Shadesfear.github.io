@@ -2,7 +2,7 @@ title: Physics and Code
 description: My Personal Stack Problems
 author: Christopher Carman
 github: https://github.com/shadesfear
-about: I'm Programmer for Python & Django. I've made quite a few web apps, especially on Django.
+about: Student of Physics at the University of Copenhagen, exploring programming
 disqus_shortname: physcode
 google_analytics: UA-XXXXXXXX-Y
 
@@ -27,7 +27,7 @@ share:
   fb_appid: 1749788565247320
 
 urls:
-p    - text: About Me
+    - text: About Me
       url: /about/
     - text: My Projects
       url: /projects/
