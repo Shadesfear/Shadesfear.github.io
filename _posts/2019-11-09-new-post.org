@@ -42,9 +42,6 @@ def parsejson
 end
 #+END_SRC
 
-#+BEGIN_SRC latex
-E = mc^2
-#+END_SRC
-
+[[../static/img/_posts/Broadcast_Mail.png]]
 
 
