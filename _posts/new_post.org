@@ -1,6 +1,4 @@
 #+OPTIONS: toc:nil
-
-#+BEGIN_EXAMPLE
 ---
 layout: post                          # (require) default post layout
 title: "Your Title"                   # (require) a string title
@@ -9,6 +7,5 @@ categories: [python, django]          # (custom) some categories, but makesure t
 tags: [foo, bar]                      # (custom) tags only for meta `property="article:tag"`
 image: Broadcast_Mail.png             # (custom) image only for meta `property="og:image"`, save your image inside path of `static/img/_posts`
 ---
-#+END_EXAMPLE
 
 test her
