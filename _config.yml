@@ -23,7 +23,7 @@ plugins:
 markdown: kramdown
 theme: minimal-mistakes-jekyll
 remote_theme: "mmistakes/minimal-mistakes"
-minimal_mistakes_skin: "air"
+minimal_mistakes_skin: "contrast"
 
 author:
   name   : "Christopher Carman"
