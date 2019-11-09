@@ -1,4 +1,4 @@
-o---
+---
 layout: post                          # (require) default post layout
 title: "Your Title"                   # (require) a string title
 date: 2016-04-20 19:51:02 +0700       # (require) a post date
