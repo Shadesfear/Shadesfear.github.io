@@ -1,58 +1,91 @@
-title: Physics and Code
-description: My Personal Stack Problems
-author: Christopher Carman
-github: https://github.com/shadesfear
-about: Student of Physics at the University of Copenhagen, exploring programming
-disqus_shortname: physcode
-google_analytics: UA-XXXXXXXX-Y
-theme: minimal-mistakes-jekyll
 
-enableTags: true
-tagarray: []
+title: Physics and code
+email: your-email@example.com
+repository: "shadesfear/shades.github.io"
+url: "shadesfear.github.io" 
+github_username: shadesfear
 
-collections:
-  project:
-    output: true
-    permalink: /project/:path/
-    
+include:
+  - _pages
+  - assets
+  - index.html
 exclude:
   - TODO.md
   - README.md
   - "*.org"
   - "*ltximg*"
 
-social:
-    - icon: fa-linkedin
-      link: "https://www.linkedin.com/in/christopher-carman/"
-    - icon: fa-stack-exchange
-      link: "https://stackoverflow.com/users/11118251/shadesfear"
-    - icon: fa-github
-      link: "https://github.com/shadesfear"
+plugins:
+  - jekyll-feed
+  - jekyll-remote-theme
+  - jekyll-include-cache
 
-share:
-  twitter_username: github.io
-  fb_appid: 1749788565247320
-
-urls:
-    - text: About Me
-      url: /about/
-
-    - text: XML Feed
-      url: /feed.xml
-
-url: "https://shadesfear.github.io"
-baseurl: "/"
-paginate: 20
-per_page: 20
-paginate_path: "/page/:num/"
 markdown: kramdown
-gems:
-  - jekyll-paginate
-  - jekyll-gist
+theme: minimal-mistakes-jekyll
+remote_theme: "mmistakes/minimal-mistakes"
+minimal_mistakes_skin: "contrast"
 
-compress_html:
-  clippings: all
-  comments: ["<!-- ", " -->"]
-  endings: all
-  ignore:
-    envs: ['development']
+author:
+  name   : "Christopher Carman"
+  avatar : "/assets/images/headshot.jpg"
+  bio    : "Writing about the things I enjoy in life, physics programming and good stuff"
+  location: "Copenhagen - Denmark"
+  github : shadesfear
+  linkedin: christopher-carman
+
+comments:
+  provider: "disqus"
+  disqus:
+    shortname: "shadesfear-github-io"
+    
+paginate: 10 # number of posts to show
+paginate_path: /page:num/
+
+defaults:
+  # all
+  - scope:
+      path: ""
+    values:
+      layout: single
+      mathjax: true
+      author_profile: true
+      class: wide
+      title: " "
+      title_separator: "|"
+  # posts
+  - scope:
+      type: posts
+    values:
+      toc: true
+      toc_label: "Contents"
+      read_time: false
+      comments: true
+  # portfolio
+  - scope:
+      path: ""
+      type: portfolio
+    values:
+      author_profile: false
+      excerpt: ""
+      sidebar:
+        nav: "portfolio"
+
+# Exclude from processing.
+# The following items will not be processed, by default.
+# Any item listed under the `exclude:` key here will be automatically added to
+# the internal "default list".
+#
+# Excluded items can be processed by explicitly listing the directories or
+# their entries' file path in the `include:` list.
+#
+# exclude:
+#   - .sass-cache/
+#   - .jekyll-cache/
+#   - gemfiles/
+#   - Gemfile
+#   - Gemfile.lock
+#   - node_modules/
+#   - vendor/bundle/
+#   - vendor/cache/
+#   - vendor/gems/
+#   - vendor/ruby/
