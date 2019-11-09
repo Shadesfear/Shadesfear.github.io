@@ -42,9 +42,9 @@ def parsejson
 end
 #+END_SRC
 
-\begin{equation}
-E=mc^2
-\end{equation}
+#+BEGIN_SRC latex
+E = mc^2
+#+END_SRC
 
 
 
