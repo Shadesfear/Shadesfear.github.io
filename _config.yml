@@ -13,6 +13,12 @@ collections:
   project:
     output: true
     permalink: /project/:path/
+    
+exclude:
+  - TODO.md
+  - README.md
+  - "*.org"
+  - "*ltximg*"
 
 social:
     - icon: fa-linkedin
