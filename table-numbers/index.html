@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Table Number Generator</title>
+<style id="page-style"></style>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; display: flex; min-height: 100vh; }
+
+  #panel { width: 340px; flex-shrink: 0; padding: 20px; background: #f4f4f5; height: 100vh; overflow: auto; position: sticky; top: 0; }
+  #panel h1 { font-size: 20px; margin: 0 0 16px; }
+  #panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: #71717a; margin: 22px 0 8px; }
+  #panel label { display: block; font-size: 14px; margin-bottom: 10px; }
+  #panel input[type=text], #panel input[type=number], #panel select { width: 100%; padding: 6px 8px; font-size: 14px; margin-top: 3px; border: 1px solid #d4d4d8; border-radius: 6px; background: white; }
+  #panel input[type=range] { width: 100%; }
+  #panel input[type=color] { width: 100%; height: 34px; margin-top: 3px; border: 1px solid #d4d4d8; border-radius: 6px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+  .hint { font-size: 12px; color: #71717a; margin: -4px 0 10px; }
+  .warn { font-size: 13px; color: #b91c1c; }
+  button { width: 100%; padding: 10px; font-size: 15px; border: 0; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+  #print { background: #18181b; color: white; font-size: 17px; padding: 14px; }
+  #reset, .small-btn { background: #e4e4e7; }
+  .small-btn { width: auto; padding: 4px 10px; font-size: 12px; margin: 0 0 10px; }
+
+  #preview { flex: 1; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-content: flex-start; background: #a1a1aa; }
+
+  .page {
+    width: var(--pw); height: var(--ph); zoom: var(--zoom);
+    background: white; box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; padding: 12mm; text-align: center;
+    font-family: var(--font); font-weight: var(--weight);
+  }
+  .graphic { height: calc(var(--ph) * var(--img-size) / 100); max-width: 100%; object-fit: contain; margin: 4mm 0; }
+  .label { font-size: var(--label-size); color: var(--label-color); line-height: 1.1; position: relative; }
+  .number { font-size: var(--number-size); color: var(--number-color); line-height: 1; position: relative; }
+  .pos-below .graphic { order: 3; }
+  .pos-free .graphic { position: absolute; left: calc(var(--img-x) * 1%); top: calc(var(--img-y) * 1%); transform: translate(-50%, -50%); max-width: none; margin: 0; }
+  .text-free .label { position: absolute; left: calc(var(--label-x) * 1%); top: calc(var(--label-y) * 1%); transform: translate(-50%, -50%); white-space: nowrap; }
+  .text-free .number { position: absolute; left: calc(var(--num-x) * 1%); top: calc(var(--num-y) * 1%); transform: translate(-50%, -50%); white-space: nowrap; }
+  .page:not(.pos-background) .graphic, .label, .number { cursor: move; touch-action: none; user-select: none; }
+  .pos-background .graphic { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; margin: 0; }
+
+  .snap-x .page::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px dashed #e11d48; }
+
+  @media print {
+    body { display: block; }
+    #panel { display: none; }
+    #preview { padding: 0; gap: 0; background: none; display: block; }
+    .page { zoom: 1; box-shadow: none; break-after: page; }
+    .page:last-child { break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>Table Numbers</h1>
+
+  <h2>Text</h2>
+  <label>Text above the number
+    <input type="text" data-key="label">
+  </label>
+  <div class="row">
+    <label>First number <input type="number" data-key="from" min="0"></label>
+    <label>Last number <input type="number" data-key="to" min="0"></label>
+  </div>
+
+  <h2>Graphic</h2>
+  <label>Picture (PNG or JPG)
+    <input type="file" id="image-file" accept="image/*">
+  </label>
+  <button class="small-btn" id="remove-image">Remove picture</button>
+  <label>Where
+    <select data-key="position">
+      <option value="above">Above the text</option>
+      <option value="below">Below the text</option>
+      <option value="free">Where I drag it</option>
+      <option value="background">Full page background</option>
+    </select>
+  </label>
+  <p class="hint">Drag the picture, the text or the number on any page to move it. All pages follow.</p>
+  <button class="small-btn" id="center-number">Centre the number left to right</button>
+  <button class="small-btn" id="recenter">Put everything back in the centre</button>
+  <label>Picture size <input type="range" data-key="imgSize" min="5" max="80"></label>
+
+  <h2>Font</h2>
+  <label>Font
+    <select data-key="font" id="font-select">
+      <option value="Georgia, serif">Georgia</option>
+      <option value="'Times New Roman', serif">Times New Roman</option>
+      <option value="Garamond, 'EB Garamond', serif">Garamond</option>
+      <option value="Arial, Helvetica, sans-serif">Arial</option>
+      <option value="Verdana, sans-serif">Verdana</option>
+      <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+      <option value="'Brush Script MT', cursive">Brush Script</option>
+      <option value="'Courier New', monospace">Courier</option>
+      <option value="UploadedFont" id="uploaded-font-option" hidden>Uploaded font</option>
+    </select>
+  </label>
+  <label>Or use your own font file (.ttf / .otf / .woff)
+    <input type="file" id="font-file" accept=".ttf,.otf,.woff,.woff2">
+  </label>
+  <label><input type="checkbox" data-key="bold"> Bold</label>
+  <div class="row">
+    <label>Text size <input type="number" data-key="labelSize" min="6" max="300"></label>
+    <label>Number size <input type="number" data-key="numberSize" min="6" max="600"></label>
+  </div>
+  <div class="row">
+    <label>Text colour <input type="color" data-key="labelColor"></label>
+    <label>Number colour <input type="color" data-key="numberColor"></label>
+  </div>
+
+  <h2>Paper</h2>
+  <div class="row">
+    <label>Size
+      <select data-key="paper">
+        <option>A4</option><option>A5</option><option>A6</option><option>Letter</option>
+      </select>
+    </label>
+    <label>Direction
+      <select data-key="orientation">
+        <option value="portrait">Standing</option>
+        <option value="landscape">Lying</option>
+      </select>
+    </label>
+  </div>
+
+  <button id="print">Make PDF</button>
+  <p class="hint" style="margin-top:8px">In the window that opens, set <b>Destination</b> to <b>Save as PDF</b>, then click <b>Save</b>.</p>
+  <p class="warn" id="warn" hidden>Your picture or font is too large to remember for next time. The PDF still works.</p>
+  <button id="reset">Start over</button>
+</div>
+
+<div id="preview"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const STORE = 'tableNumberGenerator';
+const PAPER_MM = { A4: [210, 297], A5: [148, 210], A6: [105, 148], Letter: [215.9, 279.4] };
+const MAX_PAGES = 500;
+const DEFAULTS = {
+  label: 'Table', from: 1, to: 20,
+  image: null, position: 'above', imgSize: 35, imgX: 50, imgY: 25,
+  textFree: false, labelX: 50, labelY: 45, numX: 50, numY: 60,
+  font: 'Georgia, serif', fontData: null, bold: true,
+  labelSize: 40, numberSize: 160,
+  labelColor: '#444444', numberColor: '#000000',
+  paper: 'A5', orientation: 'portrait',
+};
+
+let state = loadState();
+
+function loadState() {
+  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; }
+  catch { return { ...DEFAULTS }; }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORE, JSON.stringify(state)); $('warn').hidden = true; }
+  catch { $('warn').hidden = false; }
+}
+
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function installFont(dataUrl) {
+  const face = new FontFace('UploadedFont', `url(${dataUrl})`);
+  await face.load();
+  document.fonts.add(face);
+  $('uploaded-font-option').hidden = false;
+}
+
+function pageNumbers() {
+  const from = Math.max(0, Math.floor(state.from) || 0);
+  const to = Math.max(from, Math.floor(state.to) || from);
+  return Array.from({ length: Math.min(to - from + 1, MAX_PAGES) }, (_, i) => from + i);
+}
+
+function render() {
+  let [w, h] = PAPER_MM[state.paper];
+  if (state.orientation === 'landscape') [w, h] = [h, w];
+  $('page-style').textContent = `@page { size: ${w}mm ${h}mm; margin: 0; }`;
+
+  const root = document.documentElement.style;
+  root.setProperty('--pw', `${w}mm`);
+  root.setProperty('--ph', `${h}mm`);
+  root.setProperty('--zoom', (280 / (w * 3.7795)).toFixed(3));
+  root.setProperty('--img-size', state.imgSize);
+  root.setProperty('--img-x', state.imgX);
+  root.setProperty('--img-y', state.imgY);
+  for (const [x, y, cx, cy] of Object.values(DRAGGABLE)) {
+    root.setProperty(cx, state[x]);
+    root.setProperty(cy, state[y]);
+  }
+  root.setProperty('--font', state.font);
+  root.setProperty('--weight', state.bold ? 700 : 400);
+  root.setProperty('--label-size', `${state.labelSize}pt`);
+  root.setProperty('--number-size', `${state.numberSize}pt`);
+  root.setProperty('--label-color', state.labelColor);
+  root.setProperty('--number-color', state.numberColor);
+
+  const pages = pageNumbers().map(n => {
+    const page = document.createElement('div');
+    page.className = `page pos-${state.position}${state.textFree ? ' text-free' : ''}`;
+    if (state.image) {
+      const img = document.createElement('img');
+      img.className = 'graphic';
+      img.src = state.image;
+      page.append(img);
+    }
+    if (state.label.trim()) {
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = state.label;
+      page.append(label);
+    }
+    const num = document.createElement('div');
+    num.className = 'number';
+    num.textContent = n;
+    page.append(num);
+    return page;
+  });
+  $('preview').replaceChildren(...pages);
+}
+
+function syncInputs() {
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const v = state[el.dataset.key];
+    if (el.type === 'checkbox') el.checked = v; else el.value = v;
+  });
+}
+
+function update() { render(); saveState(); }
+
+document.querySelectorAll('[data-key]').forEach(el => {
+  el.addEventListener('input', () => {
+    const key = el.dataset.key;
+    state[key] = el.type === 'checkbox' ? el.checked
+      : el.type === 'number' || el.type === 'range' ? Number(el.value)
+      : el.value;
+    update();
+  });
+});
+
+$('image-file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  state.image = await readFile(file);
+  update();
+});
+
+const DRAGGABLE = {
+  graphic: ['imgX', 'imgY', '--img-x', '--img-y'],
+  label: ['labelX', 'labelY', '--label-x', '--label-y'],
+  number: ['numX', 'numY', '--num-x', '--num-y'],
+};
+const clamp = (v, half) => Math.min(100 - Math.min(half, 50), Math.max(Math.min(half, 50), v));
+let drag = null;
+const SNAP = 2;
+
+function canDrag(kind) {
+  return kind !== 'graphic' || state.position !== 'background';
+}
+
+function freezeLayout(pageEl) {
+  const page = pageEl.getBoundingClientRect();
+  for (const kind of Object.keys(DRAGGABLE)) {
+    const el = pageEl.querySelector(`.${kind}`);
+    if (!el || !canDrag(kind)) continue;
+    const box = el.getBoundingClientRect();
+    const [x, y] = DRAGGABLE[kind];
+    state[x] = (box.left + box.width / 2 - page.left) / page.width * 100;
+    state[y] = (box.top + box.height / 2 - page.top) / page.height * 100;
+  }
+  if (state.position !== 'background') state.position = 'free';
+  state.textFree = true;
+}
+
+$('preview').addEventListener('pointerdown', e => {
+  const el = e.target.closest('.graphic, .label, .number');
+  const kind = el && Object.keys(DRAGGABLE).find(k => el.classList.contains(k));
+  if (!kind || !canDrag(kind)) return;
+  e.preventDefault();
+  const pageIndex = [...$('preview').children].indexOf(el.parentElement);
+  const page = el.parentElement.getBoundingClientRect();
+  if (!state.textFree || (kind === 'graphic' && state.position !== 'free')) {
+    freezeLayout(el.parentElement);
+    syncInputs();
+    render();
+  }
+  const box = $('preview').children[pageIndex].querySelector(`.${kind}`).getBoundingClientRect();
+  const [x, y] = DRAGGABLE[kind];
+  drag = {
+    kind, page, startX: e.clientX, startY: e.clientY, x: state[x], y: state[y],
+    halfW: box.width / 2 / page.width * 100, halfH: box.height / 2 / page.height * 100,
+  };
+  $('preview').setPointerCapture(e.pointerId);
+});
+
+$('preview').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const [x, y, cx, cy] = DRAGGABLE[drag.kind];
+  state[x] = clamp(drag.x + (e.clientX - drag.startX) / drag.page.width * 100, drag.halfW);
+  const snapped = Math.abs(state[x] - 50) < SNAP;
+  if (snapped) state[x] = 50;
+  $('preview').classList.toggle('snap-x', snapped);
+  state[y] = clamp(drag.y + (e.clientY - drag.startY) / drag.page.height * 100, drag.halfH);
+  document.documentElement.style.setProperty(cx, state[x]);
+  document.documentElement.style.setProperty(cy, state[y]);
+});
+
+$('preview').addEventListener('pointerup', () => {
+  if (!drag) return;
+  drag = null;
+  $('preview').classList.remove('snap-x');
+  saveState();
+});
+
+$('center-number').addEventListener('click', () => {
+  if (!state.textFree) return;
+  state.numX = 50;
+  update();
+});
+
+$('recenter').addEventListener('click', () => {
+  state.textFree = false;
+  if (state.position === 'free') state.position = 'above';
+  syncInputs();
+  update();
+});
+
+$('remove-image').addEventListener('click', () => {
+  state.image = null;
+  $('image-file').value = '';
+  update();
+});
+
+$('font-file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    state.fontData = await readFile(file);
+    await installFont(state.fontData);
+    state.font = 'UploadedFont';
+    $('uploaded-font-option').textContent = `Uploaded: ${file.name}`;
+    syncInputs();
+    update();
+  } catch {
+    alert('That font file could not be read. Try a .ttf or .otf file.');
+  }
+});
+
+$('print').addEventListener('click', async () => {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map(img => img.decode().catch(() => {})));
+  window.print();
+});
+
+$('reset').addEventListener('click', () => {
+  if (!confirm('Remove the picture, font and all settings?')) return;
+  localStorage.removeItem(STORE);
+  location.reload();
+});
+
+(async () => {
+  if (state.fontData) await installFont(state.fontData).catch(() => {});
+  if (state.font === 'UploadedFont' && !state.fontData) state.font = DEFAULTS.font;
+  syncInputs();
+  render();
+})();
+</script>
+</body>
+</html>
