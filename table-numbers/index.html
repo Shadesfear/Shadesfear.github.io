@@ -31,11 +31,10 @@
     background: white; box-shadow: 0 2px 12px rgba(0,0,0,.25);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     position: relative; overflow: hidden; padding: 12mm; text-align: center;
-    font-family: var(--font); font-weight: var(--weight);
   }
   .graphic { height: calc(var(--ph) * var(--img-size) / 100); max-width: 100%; object-fit: contain; margin: 4mm 0; }
-  .label { font-size: var(--label-size); color: var(--label-color); line-height: 1.1; position: relative; }
-  .number { font-size: var(--number-size); color: var(--number-color); line-height: 1; position: relative; }
+  .label { font-family: var(--label-font); font-weight: var(--label-weight); font-size: var(--label-size); color: var(--label-color); line-height: 1.1; position: relative; }
+  .number { font-family: var(--number-font); font-weight: var(--number-weight); font-size: var(--number-size); color: var(--number-color); line-height: 1; position: relative; }
   .pos-below .graphic { order: 3; }
   .pos-free .graphic { position: absolute; left: calc(var(--img-x) * 1%); top: calc(var(--img-y) * 1%); transform: translate(-50%, -50%); max-width: none; margin: 0; }
   .text-free .label { position: absolute; left: calc(var(--label-x) * 1%); top: calc(var(--label-y) * 1%); transform: translate(-50%, -50%); white-space: nowrap; }
@@ -59,10 +58,7 @@
 <div id="panel">
   <h1>Table Numbers</h1>
 
-  <h2>Text</h2>
-  <label>Text above the number
-    <input type="text" data-key="label">
-  </label>
+  <h2>Pages</h2>
   <div class="row">
     <label>First number <input type="number" data-key="from" min="0"></label>
     <label>Last number <input type="number" data-key="to" min="0"></label>
@@ -86,32 +82,30 @@
   <button class="small-btn" id="recenter">Put everything back in the centre</button>
   <label>Picture size <input type="range" data-key="imgSize" min="5" max="80"></label>
 
-  <h2>Font</h2>
-  <label>Font
-    <select data-key="font" id="font-select">
-      <option value="Georgia, serif">Georgia</option>
-      <option value="'Times New Roman', serif">Times New Roman</option>
-      <option value="Garamond, 'EB Garamond', serif">Garamond</option>
-      <option value="Arial, Helvetica, sans-serif">Arial</option>
-      <option value="Verdana, sans-serif">Verdana</option>
-      <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
-      <option value="'Brush Script MT', cursive">Brush Script</option>
-      <option value="'Courier New', monospace">Courier</option>
-      <option value="UploadedFont" id="uploaded-font-option" hidden>Uploaded font</option>
-    </select>
+  <h2>Text</h2>
+  <label>Text (for example Table, table or TABLE)
+    <input type="text" data-key="label">
   </label>
+  <label>Font <select data-key="labelFont" data-fonts="label"></select></label>
   <label>Or use your own font file (.ttf / .otf / .woff)
-    <input type="file" id="font-file" accept=".ttf,.otf,.woff,.woff2">
+    <input type="file" data-font-file="label" accept=".ttf,.otf,.woff,.woff2">
   </label>
-  <label><input type="checkbox" data-key="bold"> Bold</label>
   <div class="row">
-    <label>Text size <input type="number" data-key="labelSize" min="6" max="300"></label>
-    <label>Number size <input type="number" data-key="numberSize" min="6" max="600"></label>
+    <label>Size <input type="number" data-key="labelSize" min="6" max="300"></label>
+    <label>Colour <input type="color" data-key="labelColor"></label>
   </div>
+  <label><input type="checkbox" data-key="labelBold"> Bold</label>
+
+  <h2>Number</h2>
+  <label>Font <select data-key="numberFont" data-fonts="number"></select></label>
+  <label>Or use your own font file (.ttf / .otf / .woff)
+    <input type="file" data-font-file="number" accept=".ttf,.otf,.woff,.woff2">
+  </label>
   <div class="row">
-    <label>Text colour <input type="color" data-key="labelColor"></label>
-    <label>Number colour <input type="color" data-key="numberColor"></label>
+    <label>Size <input type="number" data-key="numberSize" min="6" max="600"></label>
+    <label>Colour <input type="color" data-key="numberColor"></label>
   </div>
+  <label><input type="checkbox" data-key="numberBold"> Bold</label>
 
   <h2>Paper</h2>
   <div class="row">
@@ -141,11 +135,24 @@ const $ = id => document.getElementById(id);
 const STORE = 'tableNumberGenerator';
 const PAPER_MM = { A4: [210, 297], A5: [148, 210], A6: [105, 148], Letter: [215.9, 279.4] };
 const MAX_PAGES = 500;
+const FONTS = [
+  ['Georgia, serif', 'Georgia'],
+  ["'Times New Roman', serif", 'Times New Roman'],
+  ["Garamond, 'EB Garamond', serif", 'Garamond'],
+  ['Arial, Helvetica, sans-serif', 'Arial'],
+  ['Verdana, sans-serif', 'Verdana'],
+  ["'Trebuchet MS', sans-serif", 'Trebuchet'],
+  ["'Brush Script MT', cursive", 'Brush Script'],
+  ["'Courier New', monospace", 'Courier'],
+];
+const TEXTS = ['label', 'number'];
+const uploadedFamily = kind => `Uploaded-${kind}`;
 const DEFAULTS = {
   label: 'Table', from: 1, to: 20,
   image: null, position: 'above', imgSize: 35, imgX: 50, imgY: 25,
   textFree: false, labelX: 50, labelY: 45, numX: 50, numY: 60,
-  font: 'Georgia, serif', fontData: null, bold: true,
+  labelFont: 'Georgia, serif', labelFontData: null, labelFontName: '', labelBold: true,
+  numberFont: 'Georgia, serif', numberFontData: null, numberFontName: '', numberBold: true,
   labelSize: 40, numberSize: 160,
   labelColor: '#444444', numberColor: '#000000',
   paper: 'A5', orientation: 'portrait',
@@ -154,8 +161,18 @@ const DEFAULTS = {
 let state = loadState();
 
 function loadState() {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; }
-  catch { return { ...DEFAULTS }; }
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORE) || '{}'); }
+  catch { saved = {}; }
+  if ('font' in saved) {
+    for (const kind of TEXTS) {
+      saved[`${kind}Font`] = saved.font === 'UploadedFont' ? uploadedFamily(kind) : saved.font;
+      saved[`${kind}FontData`] = saved.fontData;
+      saved[`${kind}Bold`] = saved.bold;
+    }
+    delete saved.font; delete saved.fontData; delete saved.bold;
+  }
+  return { ...DEFAULTS, ...saved };
 }
 
 function saveState() {
@@ -172,11 +189,24 @@ function readFile(file) {
   });
 }
 
-async function installFont(dataUrl) {
-  const face = new FontFace('UploadedFont', `url(${dataUrl})`);
+const fontSelect = kind => document.querySelector(`[data-fonts="${kind}"]`);
+
+for (const kind of TEXTS) {
+  for (const [value, name] of [...FONTS, [uploadedFamily(kind), 'Uploaded font']]) {
+    fontSelect(kind).add(new Option(name, value));
+  }
+  fontSelect(kind).lastElementChild.hidden = true;
+}
+
+async function installFont(kind) {
+  const family = uploadedFamily(kind);
+  for (const f of [...document.fonts]) if (f.family === family) document.fonts.delete(f);
+  const face = new FontFace(family, `url(${state[`${kind}FontData`]})`);
   await face.load();
   document.fonts.add(face);
-  $('uploaded-font-option').hidden = false;
+  const option = fontSelect(kind).lastElementChild;
+  option.hidden = false;
+  option.textContent = state[`${kind}FontName`] ? `Uploaded: ${state[`${kind}FontName`]}` : 'Uploaded font';
 }
 
 function pageNumbers() {
@@ -201,8 +231,10 @@ function render() {
     root.setProperty(cx, state[x]);
     root.setProperty(cy, state[y]);
   }
-  root.setProperty('--font', state.font);
-  root.setProperty('--weight', state.bold ? 700 : 400);
+  for (const kind of TEXTS) {
+    root.setProperty(`--${kind}-font`, state[`${kind}Font`]);
+    root.setProperty(`--${kind}-weight`, state[`${kind}Bold`] ? 700 : 400);
+  }
   root.setProperty('--label-size', `${state.labelSize}pt`);
   root.setProperty('--number-size', `${state.numberSize}pt`);
   root.setProperty('--label-color', state.labelColor);
@@ -344,20 +376,21 @@ $('remove-image').addEventListener('click', () => {
   update();
 });
 
-$('font-file').addEventListener('change', async e => {
-  const file = e.target.files[0];
+document.querySelectorAll('[data-font-file]').forEach(input => input.addEventListener('change', async () => {
+  const kind = input.dataset.fontFile;
+  const file = input.files[0];
   if (!file) return;
   try {
-    state.fontData = await readFile(file);
-    await installFont(state.fontData);
-    state.font = 'UploadedFont';
-    $('uploaded-font-option').textContent = `Uploaded: ${file.name}`;
+    state[`${kind}FontData`] = await readFile(file);
+    state[`${kind}FontName`] = file.name;
+    await installFont(kind);
+    state[`${kind}Font`] = uploadedFamily(kind);
     syncInputs();
     update();
   } catch {
     alert('That font file could not be read. Try a .ttf or .otf file.');
   }
-});
+}));
 
 $('print').addEventListener('click', async () => {
   await document.fonts.ready;
@@ -372,8 +405,11 @@ $('reset').addEventListener('click', () => {
 });
 
 (async () => {
-  if (state.fontData) await installFont(state.fontData).catch(() => {});
-  if (state.font === 'UploadedFont' && !state.fontData) state.font = DEFAULTS.font;
+  for (const kind of TEXTS) {
+    const key = `${kind}Font`;
+    if (state[`${kind}FontData`]) await installFont(kind).catch(() => {});
+    if (state[key] === uploadedFamily(kind) && !state[`${kind}FontData`]) state[key] = DEFAULTS[key];
+  }
   syncInputs();
   render();
 })();
